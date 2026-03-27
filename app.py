@@ -12,7 +12,7 @@ st.markdown(
     """
     <style>
     .bloco {
-        max-width: 600px;
+        max-width: 900px;
         margin-left: 40px;
     }
     </style>
@@ -23,7 +23,7 @@ st.markdown(
 st.markdown('<div class="bloco">', unsafe_allow_html=True)
 
 st.title("Sistema de Notas")
-st.subheader("Cadastro de Colaboradores")
+st.subheader("Colaboradores")
 
 # ----------------------------
 # ARQUIVO
@@ -36,9 +36,6 @@ if not os.path.exists(ARQUIVO):
     ])
     df_inicial.to_csv(ARQUIVO, index=False)
 
-# ----------------------------
-# CARREGAR DADOS
-# ----------------------------
 df = pd.read_csv(ARQUIVO)
 
 # garantir ID
@@ -99,53 +96,59 @@ DEPARTAMENTOS = ["Selecione"] + sorted(DEPARTAMENTOS_BASE)
 GESTORES = ["Selecione"] + sorted(GESTORES_BASE)
 
 # ----------------------------
-# FORMULÁRIO
+# MODAL (POPUP)
 # ----------------------------
-nome = st.text_input("Nome completo")
-email = st.text_input("E-mail corporativo")
+@st.dialog("Novo Colaborador")
+def modal_cadastro():
 
-departamento = st.selectbox("Departamento", DEPARTAMENTOS)
-gestor = st.selectbox("Gestor imediato", GESTORES)
+    nome = st.text_input("Nome completo")
+    email = st.text_input("E-mail corporativo")
 
-ativo = st.checkbox("Ativo", value=True)
+    departamento = st.selectbox("Departamento", DEPARTAMENTOS)
+    gestor = st.selectbox("Gestor imediato", GESTORES)
 
-# ----------------------------
-# BOTÃO
-# ----------------------------
-if st.button("Cadastrar"):
-    if nome and email and departamento != "Selecione" and gestor != "Selecione":
+    ativo = st.checkbox("Ativo", value=True)
 
-        status = "Ativo" if ativo else "Inativo"
+    if st.button("Salvar cadastro"):
+        if nome and email and departamento != "Selecione" and gestor != "Selecione":
 
-        if email in df["Email"].values:
-            st.warning("Email já cadastrado.")
-        else:
-            if df.empty:
-                novo_id = 1
+            status = "Ativo" if ativo else "Inativo"
+
+            if email in df["Email"].values:
+                st.warning("Email já cadastrado.")
             else:
-                novo_id = int(df["ID"].max()) + 1
+                if df.empty:
+                    novo_id = 1
+                else:
+                    novo_id = int(df["ID"].max()) + 1
 
-            nova_linha = {
-                "ID": novo_id,
-                "Email": email,
-                "Nome": nome,
-                "Departamento": departamento,
-                "Gestor": gestor,
-                "Status": status,
-                "Data Cadastro": datetime.now().strftime("%d/%m/%Y %H:%M")
-            }
+                nova_linha = {
+                    "ID": novo_id,
+                    "Email": email,
+                    "Nome": nome,
+                    "Departamento": departamento,
+                    "Gestor": gestor,
+                    "Status": status,
+                    "Data Cadastro": datetime.now().strftime("%d/%m/%Y %H:%M")
+                }
 
-            df = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
-            df.to_csv(ARQUIVO, index=False)
+                df_novo = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
+                df_novo.to_csv(ARQUIVO, index=False)
 
-            st.success(f"Colaborador cadastrado com ID {novo_id}")
-            st.rerun()
+                st.success("Cadastro realizado com sucesso!")
+                st.rerun()
 
-    else:
-        st.error("Preencha todos os campos obrigatórios")
+        else:
+            st.error("Preencha todos os campos obrigatórios")
 
 # ----------------------------
-# TABELA (CORRIGIDA)
+# BOTÃO PRINCIPAL
+# ----------------------------
+if st.button("➕ Criar cadastro"):
+    modal_cadastro()
+
+# ----------------------------
+# TABELA
 # ----------------------------
 st.subheader("Colaboradores cadastrados")
 
@@ -154,11 +157,8 @@ df = pd.read_csv(ARQUIVO)
 if not df.empty:
 
     df_exibir = df.copy()
-
-    # ordenar por ID desc
     df_exibir = df_exibir.sort_values(by="ID", ascending=False)
 
-    # garantir ID na frente
     colunas = ["ID"] + [col for col in df_exibir.columns if col != "ID"]
     df_exibir = df_exibir[colunas]
 

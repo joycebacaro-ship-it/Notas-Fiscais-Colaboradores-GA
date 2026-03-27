@@ -5,7 +5,6 @@ import os
 
 st.set_page_config(page_title="Sistema de Notas", layout="centered")
 
-st.title("Sistema de Notas")
 st.subheader("Cadastro de Colaboradores")
 
 # ----------------------------

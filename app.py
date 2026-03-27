@@ -3,7 +3,25 @@ import pandas as pd
 from datetime import datetime
 import os
 
-st.set_page_config(page_title="Sistema de Notas", layout="centered")
+# 🔥 LAYOUT WIDE (não centralizado)
+st.set_page_config(page_title="Sistema de Notas", layout="wide")
+
+# ----------------------------
+# MARGEM + ALINHAMENTO ESQUERDA
+# ----------------------------
+st.markdown(
+    """
+    <style>
+    .bloco {
+        max-width: 600px;
+        margin-left: 40px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown('<div class="bloco">', unsafe_allow_html=True)
 
 st.title("Sistema de Notas")
 st.subheader("Cadastro de Colaboradores")
@@ -74,7 +92,7 @@ GESTORES_BASE = [
 ]
 
 # ----------------------------
-# ORDENAÇÃO AUTOMÁTICA
+# ORDENAÇÃO
 # ----------------------------
 DEPARTAMENTOS = ["Selecione"] + sorted(DEPARTAMENTOS_BASE)
 GESTORES = ["Selecione"] + sorted(GESTORES_BASE)
@@ -101,7 +119,6 @@ if "ativo" not in st.session_state:
 # FORMULÁRIO
 # ----------------------------
 nome = st.text_input("Nome completo", key="nome")
-
 email = st.text_input("E-mail corporativo", key="email")
 
 departamento = st.selectbox(
@@ -119,14 +136,13 @@ gestor = st.selectbox(
 ativo = st.checkbox("Ativo", key="ativo")
 
 # ----------------------------
-# BOTÃO CADASTRAR
+# BOTÃO
 # ----------------------------
 if st.button("Cadastrar"):
     if nome and email and departamento != "Selecione" and gestor != "Selecione":
 
         status = "Ativo" if ativo else "Inativo"
 
-        # valida duplicidade
         if email in df["Email"].values:
             st.warning("Email já cadastrado.")
         else:
@@ -144,7 +160,6 @@ if st.button("Cadastrar"):
 
             st.success("Colaborador cadastrado com sucesso!")
 
-            # limpar campos
             st.session_state.nome = ""
             st.session_state.email = ""
             st.session_state.gestor = "Selecione"
@@ -155,16 +170,15 @@ if st.button("Cadastrar"):
         st.error("Preencha todos os campos obrigatórios")
 
 # ----------------------------
-# ATUALIZAR DADOS NA TELA
-# ----------------------------
-df = pd.read_csv(ARQUIVO)
-
-# ----------------------------
 # TABELA
 # ----------------------------
 st.subheader("Colaboradores cadastrados")
+
+df = pd.read_csv(ARQUIVO)
 
 if not df.empty:
     st.dataframe(df, use_container_width=True)
 else:
     st.write("Nenhum colaborador cadastrado ainda.")
+
+st.markdown('</div>', unsafe_allow_html=True)

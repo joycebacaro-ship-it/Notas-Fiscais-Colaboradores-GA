@@ -144,7 +144,7 @@ def render():
             cnpj = dados.get("documento", "")
             numero_nf = dados.get("numero", "")
             data_emissao = dados.get("data", "")
-            razao_social = dados.get("razao", "")
+            razao_social = dados.get("nome empresarial", "")
 
             st.markdown("### 📄 Dados identificados automaticamente")
 

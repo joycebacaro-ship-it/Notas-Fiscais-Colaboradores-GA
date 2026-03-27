@@ -63,8 +63,8 @@ botao_menu("Enviar Nota Fiscal", "📄 Enviar Nota Fiscal")
 # ----------------------------
 # IMPORTAÇÃO DAS PÁGINAS
 # ----------------------------
-from pages import colaboradores
-from pages import notas
+import colaboradores
+import notas
 
 # ----------------------------
 # ROTEAMENTO CORRETO

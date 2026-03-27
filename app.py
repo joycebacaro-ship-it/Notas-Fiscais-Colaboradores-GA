@@ -56,6 +56,29 @@ DEPARTAMENTOS = [
 ]
 
 # ----------------------------
+# LISTA DE GESTORES
+# ----------------------------
+GESTORES = [
+    "Selecione",
+    "Alnilam Campos",
+    "Diego Depardieu",
+    "Vitor Damasceno",
+    "Débora Castro",
+    "Thais Silva",
+    "Vinicius Franco",
+    "Rodrigo Mourão",
+    "Aline Marques",
+    "Lucas Amaral",
+    "Marcus Marques",
+    "Liz Nunes",
+    "Patricy Caetano",
+    "Virginia Pierini",
+    "Rafael Garcia",
+    "Camila Távora",
+    "Deyse Lima"
+]
+
+# ----------------------------
 # CONTROLE DOS CAMPOS
 # ----------------------------
 if "nome" not in st.session_state:
@@ -65,7 +88,7 @@ if "email" not in st.session_state:
     st.session_state.email = ""
 
 if "gestor" not in st.session_state:
-    st.session_state.gestor = ""
+    st.session_state.gestor = "Selecione"
 
 if "departamento" not in st.session_state:
     st.session_state.departamento = "Selecione"
@@ -74,7 +97,7 @@ if "ativo" not in st.session_state:
     st.session_state.ativo = True
 
 # ----------------------------
-# FORMULÁRIO (ORDEM AJUSTADA)
+# FORMULÁRIO
 # ----------------------------
 nome = st.text_input("Nome completo", key="nome")
 
@@ -86,7 +109,11 @@ departamento = st.selectbox(
     key="departamento"
 )
 
-gestor = st.text_input("Gestor imediato", key="gestor")
+gestor = st.selectbox(
+    "Gestor imediato",
+    GESTORES,
+    key="gestor"
+)
 
 ativo = st.checkbox("Ativo", key="ativo")
 
@@ -94,7 +121,7 @@ ativo = st.checkbox("Ativo", key="ativo")
 # BOTÃO CADASTRAR
 # ----------------------------
 if st.button("Cadastrar"):
-    if nome and email and departamento != "Selecione":
+    if nome and email and departamento != "Selecione" and gestor != "Selecione":
 
         status = "Ativo" if ativo else "Inativo"
 
@@ -119,7 +146,7 @@ if st.button("Cadastrar"):
             # limpar campos
             st.session_state.nome = ""
             st.session_state.email = ""
-            st.session_state.gestor = ""
+            st.session_state.gestor = "Selecione"
             st.session_state.departamento = "Selecione"
             st.session_state.ativo = True
 

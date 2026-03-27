@@ -3,11 +3,10 @@ import pandas as pd
 from datetime import datetime
 import os
 
-# 🔥 LAYOUT WIDE (não centralizado)
 st.set_page_config(page_title="Sistema de Notas", layout="wide")
 
 # ----------------------------
-# MARGEM + ALINHAMENTO ESQUERDA
+# ESTILO
 # ----------------------------
 st.markdown(
     """
@@ -27,13 +26,13 @@ st.title("Sistema de Notas")
 st.subheader("Cadastro de Colaboradores")
 
 # ----------------------------
-# ARQUIVO DE DADOS
+# ARQUIVO
 # ----------------------------
 ARQUIVO = "colaboradores.csv"
 
 if not os.path.exists(ARQUIVO):
     df_inicial = pd.DataFrame(columns=[
-        "Email", "Nome", "Departamento", "Gestor", "Status", "Data Cadastro"
+        "ID", "Email", "Nome", "Departamento", "Gestor", "Status", "Data Cadastro"
     ])
     df_inicial.to_csv(ARQUIVO, index=False)
 
@@ -43,7 +42,7 @@ if not os.path.exists(ARQUIVO):
 df = pd.read_csv(ARQUIVO)
 
 # ----------------------------
-# LISTAS BASE
+# LISTAS
 # ----------------------------
 DEPARTAMENTOS_BASE = [
     "Assessoria Diretoria Executiva",
@@ -91,14 +90,11 @@ GESTORES_BASE = [
     "Deyse Lima"
 ]
 
-# ----------------------------
-# ORDENAÇÃO
-# ----------------------------
 DEPARTAMENTOS = ["Selecione"] + sorted(DEPARTAMENTOS_BASE)
 GESTORES = ["Selecione"] + sorted(GESTORES_BASE)
 
 # ----------------------------
-# CONTROLE DOS CAMPOS
+# CAMPOS
 # ----------------------------
 if "nome" not in st.session_state:
     st.session_state.nome = ""
@@ -121,17 +117,8 @@ if "ativo" not in st.session_state:
 nome = st.text_input("Nome completo", key="nome")
 email = st.text_input("E-mail corporativo", key="email")
 
-departamento = st.selectbox(
-    "Departamento",
-    DEPARTAMENTOS,
-    key="departamento"
-)
-
-gestor = st.selectbox(
-    "Gestor imediato",
-    GESTORES,
-    key="gestor"
-)
+departamento = st.selectbox("Departamento", DEPARTAMENTOS, key="departamento")
+gestor = st.selectbox("Gestor imediato", GESTORES, key="gestor")
 
 ativo = st.checkbox("Ativo", key="ativo")
 
@@ -146,7 +133,14 @@ if st.button("Cadastrar"):
         if email in df["Email"].values:
             st.warning("Email já cadastrado.")
         else:
+            # 🔥 GERAR ID AUTOMÁTICO
+            if df.empty:
+                novo_id = 1
+            else:
+                novo_id = int(df["ID"].max()) + 1
+
             nova_linha = {
+                "ID": novo_id,
                 "Email": email,
                 "Nome": nome,
                 "Departamento": departamento,
@@ -158,8 +152,9 @@ if st.button("Cadastrar"):
             df = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
             df.to_csv(ARQUIVO, index=False)
 
-            st.success("Colaborador cadastrado com sucesso!")
+            st.success(f"Colaborador cadastrado com ID {novo_id}")
 
+            # limpar campos
             st.session_state.nome = ""
             st.session_state.email = ""
             st.session_state.gestor = "Selecione"

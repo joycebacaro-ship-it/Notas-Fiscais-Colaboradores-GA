@@ -6,31 +6,40 @@ import os
 st.set_page_config(page_title="Sistema de Notas", layout="wide")
 
 # ----------------------------
-# SIDEBAR ESTILO SISTEMA
+# SIDEBAR ESTILO ESCURO
 # ----------------------------
 st.markdown("""
 <style>
 [data-testid="stSidebar"] {
-    background-color: #f5f5f5;
+    background-color: #1f2937; /* cinza escuro */
 }
 
-.menu-item {
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 5px;
+[data-testid="stSidebar"] * {
+    color: white;
+}
+
+section[data-testid="stSidebar"] .stRadio > div {
+    gap: 8px;
+}
+
+section[data-testid="stSidebar"] label {
+    font-size: 16px;
     font-weight: 500;
-    cursor: pointer;
 }
 
-.menu-item:hover {
-    background-color: #e0e0e0;
+section[data-testid="stSidebar"] div[role="radiogroup"] label {
+    padding: 10px;
+    border-radius: 8px;
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+    background-color: #374151;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Logo_placeholder.svg/512px-Logo_placeholder.svg.png", width=180)
-
-st.sidebar.markdown("### Menu")
+# LOGO (pode trocar depois)
+st.sidebar.markdown("## Grupo Acelerador")
 
 pagina = st.sidebar.radio(
     "",

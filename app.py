@@ -25,6 +25,36 @@ if not os.path.exists(ARQUIVO):
 df = pd.read_csv(ARQUIVO)
 
 # ----------------------------
+# LISTA DE DEPARTAMENTOS
+# ----------------------------
+DEPARTAMENTOS = [
+    "Assessoria Diretoria Executiva",
+    "Comercial",
+    "Compras",
+    "Diretores Giants",
+    "Diretoria Executiva",
+    "Educação",
+    "Estoque",
+    "Eventos - Operação",
+    "Eventos - Produção",
+    "Eventos - Técnica",
+    "Eventos Externos",
+    "Experiência do Cliente",
+    "Financeiro",
+    "Gente e Gestão",
+    "Infraestrutura",
+    "Marketing - Criação",
+    "Marketing - Performance",
+    "Marketing - Redes Sociais",
+    "Mentoria",
+    "Merchandising",
+    "Relacionamento",
+    "Sucesso do Cliente",
+    "Tecnologia da Informação",
+    "XR"
+]
+
+# ----------------------------
 # CONTROLE DOS CAMPOS
 # ----------------------------
 if "email" not in st.session_state:
@@ -37,7 +67,7 @@ if "gestor" not in st.session_state:
     st.session_state.gestor = ""
 
 if "departamento" not in st.session_state:
-    st.session_state.departamento = "Marketing"
+    st.session_state.departamento = DEPARTAMENTOS[0]
 
 if "status" not in st.session_state:
     st.session_state.status = "Ativo"
@@ -50,7 +80,7 @@ nome = st.text_input("Nome completo", key="nome")
 
 departamento = st.selectbox(
     "Departamento",
-    ["Marketing", "Comercial", "Financeiro", "Operações"],
+    DEPARTAMENTOS,
     key="departamento"
 )
 
@@ -90,7 +120,7 @@ if st.button("Cadastrar"):
             st.session_state.email = ""
             st.session_state.nome = ""
             st.session_state.gestor = ""
-            st.session_state.departamento = "Marketing"
+            st.session_state.departamento = DEPARTAMENTOS[0]
             st.session_state.status = "Ativo"
 
     else:

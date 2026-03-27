@@ -3,6 +3,7 @@ import streamlit as st
 # ----------------------------
 # CONFIG
 # ----------------------------
+st.set_page_config(page_title="Sistema de Notas", layout="wide")
 
 # ----------------------------
 # ESTILO SIDEBAR
@@ -28,11 +29,10 @@ if "pagina" not in st.session_state:
 # SIDEBAR
 # ----------------------------
 st.sidebar.markdown("""
-### ACELERA NOTAS
+### Sistema de Notas
 <span style='font-size:12px; color:#9ca3af;'>Grupo Acelerador</span>
 """, unsafe_allow_html=True)
 
-st.sidebar.markdown("---")
 st.sidebar.markdown("---")
 
 def botao_menu(nome, label):
@@ -61,22 +61,16 @@ botao_menu("Colaborador", "👤 Colaborador")
 botao_menu("Enviar Nota Fiscal", "📄 Enviar Nota Fiscal")
 
 # ----------------------------
-# IMPORTAÇÃO SEGURA DAS PÁGINAS
+# IMPORTAÇÃO DAS PÁGINAS
 # ----------------------------
-try:
-    from pages import colaboradores
-except:
-    colaboradores = None
-
-# try futuro:
-# from pages import notas
+from pages import colaboradores
+from pages import notas
 
 # ----------------------------
-# ROTEAMENTO
+# ROTEAMENTO CORRETO
 # ----------------------------
 if st.session_state.pagina == "Colaborador":
-    if colaboradores:
-        colaboradores.render()
-    else:
-        st.error("Página de colaboradores não encontrada")
+    colaboradores.render()
 
+elif st.session_state.pagina == "Enviar Nota Fiscal":
+    notas.render()

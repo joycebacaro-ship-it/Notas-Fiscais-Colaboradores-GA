@@ -21,6 +21,7 @@ def render():
 
     ARQUIVO = "colaboradores.csv"
 
+    # cria arquivo se não existir
     if not os.path.exists(ARQUIVO):
         df_inicial = pd.DataFrame(columns=[
             "ID", "Email", "Nome", "Departamento", "Gestor", "Status", "Data Cadastro"
@@ -29,10 +30,11 @@ def render():
 
     df = pd.read_csv(ARQUIVO)
 
+    # garante ID
     if "ID" not in df.columns:
         df["ID"] = range(1, len(df) + 1)
         df.to_csv(ARQUIVO, index=False)
 
-    st.success("Página de colaboradores carregada 🚀")
+    st.success("Página de colaboradores funcionando 🚀")
 
     st.markdown('</div>', unsafe_allow_html=True)

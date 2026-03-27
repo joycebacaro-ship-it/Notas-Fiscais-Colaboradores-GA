@@ -28,7 +28,7 @@ df = pd.read_csv(ARQUIVO)
 # LISTA DE DEPARTAMENTOS
 # ----------------------------
 DEPARTAMENTOS = [
-    "Departamento",
+    "Selecione",
     "Assessoria Diretoria Executiva",
     "Comercial",
     "Compras",
@@ -68,10 +68,10 @@ if "gestor" not in st.session_state:
     st.session_state.gestor = ""
 
 if "departamento" not in st.session_state:
-    st.session_state.departamento = "Departamento"
+    st.session_state.departamento = "Selecione"
 
-if "status" not in st.session_state:
-    st.session_state.status = "Ativo"
+if "ativo" not in st.session_state:
+    st.session_state.ativo = True
 
 # ----------------------------
 # FORMULÁRIO
@@ -87,17 +87,15 @@ departamento = st.selectbox(
 
 gestor = st.text_input("Gestor direto", key="gestor")
 
-status = st.selectbox(
-    "Status",
-    ["Ativo", "Inativo"],
-    key="status"
-)
+ativo = st.checkbox("Ativo", key="ativo")
 
 # ----------------------------
 # BOTÃO CADASTRAR
 # ----------------------------
 if st.button("Cadastrar"):
-    if email and nome and departamento != "Departamento":
+    if email and nome and departamento != "Selecione":
+
+        status = "Ativo" if ativo else "Inativo"
 
         # valida duplicidade
         if email in df["Email"].values:
@@ -121,8 +119,8 @@ if st.button("Cadastrar"):
             st.session_state.email = ""
             st.session_state.nome = ""
             st.session_state.gestor = ""
-            st.session_state.departamento = "Departamento"
-            st.session_state.status = "Ativo"
+            st.session_state.departamento = "Selecione"
+            st.session_state.ativo = True
 
     else:
         st.error("Preencha todos os campos obrigatórios")

@@ -5,6 +5,9 @@ import os
 import pdfplumber
 import re
 
+# ----------------------------
+# EXTRAÇÃO PDF
+# ----------------------------
 def extrair_dados_pdf(caminho):
 
     texto = ""
@@ -14,25 +17,47 @@ def extrair_dados_pdf(caminho):
             for pagina in pdf.pages:
                 texto += pagina.extract_text() or ""
     except:
-        return {
-            "cnpj": "",
-            "valor": "",
-            "data": "",
-            "numero": ""
-        }
+        return {}
 
-    cnpj = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
-    valor = re.search(r"R\$\s?\d+[.,]\d{2}", texto)
-    data = re.search(r"\d{2}/\d{2}/\d{4}", texto)
-    numero = re.search(r"\b\d{5,}\b", texto)
+    # CNPJ / CPF
+    doc = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
+    if not doc:
+        doc = re.search(r"\d{3}\.\d{3}\.\d{3}-\d{2}", texto)
+
+    # VALOR (pega o maior)
+    valores = re.findall(r"R\$\s?\d{1,3}(?:\.\d{3})*,\d{2}", texto)
+
+    valor_final = ""
+    if valores:
+        valor_final = sorted(
+            valores,
+            key=lambda x: float(x.replace("R$", "").replace(".", "").replace(",", "."))
+        )[-1]
+
+    # DATA
+    datas = re.findall(r"\d{2}/\d{2}/\d{4}", texto)
+    data_final = datas[0] if datas else ""
+
+    # NUMERO NF
+    numero = re.search(r"(?:NF|Nota Fiscal)[^\d]*(\d+)", texto, re.IGNORECASE)
+    if not numero:
+        numero = re.search(r"\b\d{6,}\b", texto)
+
+    # RAZÃO SOCIAL
+    linhas = texto.split("\n")
+    razao = linhas[0] if linhas else ""
 
     return {
-        "cnpj": cnpj.group() if cnpj else "",
-        "valor": valor.group() if valor else "",
-        "data": data.group() if data else "",
-        "numero": numero.group() if numero else ""
+        "documento": doc.group() if doc else "",
+        "valor": valor_final,
+        "data": data_final,
+        "numero": numero.group(1) if numero and numero.groups() else (numero.group() if numero else ""),
+        "razao": razao
     }
 
+# ----------------------------
+# RENDER
+# ----------------------------
 def render():
 
     st.markdown("""
@@ -46,6 +71,8 @@ def render():
 
     st.markdown('<div class="bloco">', unsafe_allow_html=True)
 
+    st.subheader("Notas Fiscais")
+
     # ----------------------------
     # ARQUIVOS
     # ----------------------------
@@ -58,8 +85,19 @@ def render():
 
     if not os.path.exists(ARQUIVO_NOTAS):
         df_init = pd.DataFrame(columns=[
-            "ID", "Colaborador", "Email", "Arquivo",
-            "Valor", "CNPJ", "Numero", "Data Nota", "Data Upload"
+            "ID",
+            "Data Solicitação",
+            "Colaborador",
+            "Departamento",
+            "Gestor",
+            "Email",
+            "Arquivo",
+            "Valor",
+            "Razão Social",
+            "CNPJ",
+            "Número NF",
+            "Data Emissão",
+            "Data Upload"
         ])
         df_init.to_csv(ARQUIVO_NOTAS, index=False)
 
@@ -79,7 +117,7 @@ def render():
     lista_colab = df_colab["Nome"].tolist()
 
     # ----------------------------
-    # MODAL INTELIGENTE
+    # MODAL
     # ----------------------------
     @st.dialog("Novo envio de Nota Fiscal")
     def modal_nota():
@@ -89,8 +127,9 @@ def render():
 
         valor = ""
         cnpj = ""
-        numero = ""
-        data = ""
+        numero_nf = ""
+        data_emissao = ""
+        razao_social = ""
 
         if arquivo is not None:
 
@@ -101,13 +140,23 @@ def render():
 
             dados = extrair_dados_pdf(caminho_temp)
 
+            valor = dados.get("valor", "")
+            cnpj = dados.get("documento", "")
+            numero_nf = dados.get("numero", "")
+            data_emissao = dados.get("data", "")
+            razao_social = dados.get("razao", "")
+
             st.markdown("### 📄 Dados identificados automaticamente")
 
-            valor = st.text_input("Valor", value=dados["valor"])
-            cnpj = st.text_input("CNPJ", value=dados["cnpj"])
-            numero = st.text_input("Número da Nota", value=dados["numero"])
-            data = st.text_input("Data da Nota", value=dados["data"])
+            valor = st.text_input("Valor da Nota Fiscal", value=valor)
+            razao_social = st.text_input("Razão Social", value=razao_social)
+            cnpj = st.text_input("CNPJ / CPF", value=cnpj)
+            numero_nf = st.text_input("Número da NF", value=numero_nf)
+            data_emissao = st.text_input("Data da Emissão", value=data_emissao)
 
+        # ----------------------------
+        # CONFIRMAR
+        # ----------------------------
         if st.button("Confirmar envio"):
 
             if colaborador == "Selecione" or arquivo is None:
@@ -115,7 +164,10 @@ def render():
                 return
 
             dados_colab = df_colab[df_colab["Nome"] == colaborador].iloc[0]
+
             email = dados_colab["Email"]
+            departamento = dados_colab["Departamento"]
+            gestor = dados_colab["Gestor"]
 
             df_notas = pd.read_csv(ARQUIVO_NOTAS)
 
@@ -129,13 +181,17 @@ def render():
 
             nova_linha = {
                 "ID": novo_id,
+                "Data Solicitação": datetime.now().strftime("%d/%m/%Y %H:%M"),
                 "Colaborador": colaborador,
+                "Departamento": departamento,
+                "Gestor": gestor,
                 "Email": email,
                 "Arquivo": nome_arquivo,
                 "Valor": valor,
+                "Razão Social": razao_social,
                 "CNPJ": cnpj,
-                "Numero": numero,
-                "Data Nota": data,
+                "Número NF": numero_nf,
+                "Data Emissão": data_emissao,
                 "Data Upload": datetime.now().strftime("%d/%m/%Y %H:%M")
             }
 

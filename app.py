@@ -1,16 +1,36 @@
+import streamlit as st
+
 # ----------------------------
-# SIDEBAR MENU LIMPO (SEM ERRO)
+# CONFIG
+# ----------------------------
+st.set_page_config(page_title="Sistema de Notas", layout="wide")
+
+# ----------------------------
+# ESTILO SIDEBAR
+# ----------------------------
+st.markdown("""
+<style>
+[data-testid="stSidebar"] {
+    background-color: #1f2937;
+}
+[data-testid="stSidebar"] * {
+    color: white;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ----------------------------
+# ESTADO
+# ----------------------------
+if "pagina" not in st.session_state:
+    st.session_state.pagina = "Colaborador"
+
+# ----------------------------
+# SIDEBAR
 # ----------------------------
 st.sidebar.markdown("## Grupo Acelerador")
 st.sidebar.markdown("---")
 
-# estado inicial
-if "pagina" not in st.session_state:
-    st.session_state.pagina = "Colaborador"
-
-pagina = st.session_state.pagina
-
-# função botão com destaque
 def botao_menu(nome, label):
     if st.session_state.pagina == nome:
         st.sidebar.markdown(
@@ -32,8 +52,30 @@ def botao_menu(nome, label):
             st.session_state.pagina = nome
             st.rerun()
 
-# menu
+# MENU
 botao_menu("Colaborador", "👤 Colaborador")
 botao_menu("Enviar Nota Fiscal", "📄 Enviar Nota Fiscal")
 
-pagina = st.session_state.pagina
+# ----------------------------
+# IMPORTAÇÃO SEGURA DAS PÁGINAS
+# ----------------------------
+try:
+    from pages import colaboradores
+except:
+    colaboradores = None
+
+# try futuro:
+# from pages import notas
+
+# ----------------------------
+# ROTEAMENTO
+# ----------------------------
+if st.session_state.pagina == "Colaborador":
+    if colaboradores:
+        colaboradores.render()
+    else:
+        st.error("Página de colaboradores não encontrada")
+
+elif st.session_state.pagina == "Enviar Nota Fiscal":
+    st.title("Enviar Nota Fiscal")
+    st.info("🚧 Em construção")

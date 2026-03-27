@@ -48,7 +48,7 @@ def extrair_dados_pdf(caminho):
     # COMPETÊNCIA
     # ----------------------------
     match_comp = re.search(
-        r"Competência da NFS-e\s*\n?\s*([0-9]{2}/[0-9]{2}/[0-9]{4})",
+        r"Data Competência da NFS-e\s*\n?\s*([0-9]{2}/[0-9]{2}/[0-9]{4})",
         texto,
         re.IGNORECASE
     )

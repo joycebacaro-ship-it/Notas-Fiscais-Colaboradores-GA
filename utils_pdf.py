@@ -21,18 +21,16 @@ def extrair_dados_pdf(caminho):
         return {}
 
     texto = limpar_texto(texto)
-
     linhas = texto.split("\n")
 
     # ----------------------------
     # CHAVE DE ACESSO
     # ----------------------------
     match_chave = re.search(
-        r"Chave de Acesso da NFS-e\s*\n?\s*([0-9]{44})",
-        texto,
-        re.IGNORECASE
+        r"\b\d{44}\b",
+        texto
     )
-    chave = match_chave.group(1) if match_chave else ""
+    chave = match_chave.group(0) if match_chave else ""
 
     # ----------------------------
     # NÚMERO NF
@@ -48,7 +46,7 @@ def extrair_dados_pdf(caminho):
     # COMPETÊNCIA
     # ----------------------------
     match_comp = re.search(
-        r"Data Competência da NFS-e\s*\n?\s*([0-9]{2}/[0-9]{2}/[0-9]{4})",
+        r"Competência da NFS-e\s*\n?\s*([0-9]{2}/[0-9]{2}/[0-9]{4})",
         texto,
         re.IGNORECASE
     )
@@ -65,7 +63,7 @@ def extrair_dados_pdf(caminho):
     data_emissao = match_data.group(1) if match_data else ""
 
     # ----------------------------
-    # RAZÃO SOCIAL (BLOCO PRESTADOR)
+    # RAZÃO SOCIAL (INTELIGENTE)
     # ----------------------------
     razao_social = ""
 
@@ -83,16 +81,36 @@ def extrair_dados_pdf(caminho):
     if inicio is not None and fim is not None:
 
         bloco = linhas[inicio:fim]
+        encontrou_label = False
 
-        for i, linha in enumerate(bloco):
+        for linha in bloco:
+
             if "Nome / Nome Empresarial".lower() in linha.lower():
+                encontrou_label = True
+                continue
 
-                if i + 1 < len(bloco):
-                    candidato = bloco[i + 1].strip()
+            if encontrou_label:
 
-                    if candidato and "@" not in candidato:
-                        razao_social = candidato
+                candidato = linha.strip()
 
+                if not candidato:
+                    continue
+
+                # FILTROS
+                if any(x in candidato.lower() for x in [
+                    "cep", "rua", "avenida", "av", "município",
+                    "telefone", "email", "inscrição", "endereço"
+                ]):
+                    continue
+
+                if "@" in candidato:
+                    continue
+
+                if re.search(r"\d{5}-\d{3}", candidato):
+                    continue
+
+                # encontrou nome válido
+                razao_social = candidato
                 break
 
     # ----------------------------
@@ -105,23 +123,33 @@ def extrair_dados_pdf(caminho):
     cnpj = match_cnpj.group(0) if match_cnpj else ""
 
     # ----------------------------
-    # VALOR LÍQUIDO
+    # VALOR
     # ----------------------------
-    match_valor = re.search(
-        r"Valor Líquido da NFS-e.*?(R\$\s?\d{1,3}(?:\.\d{3})*,\d{2})",
-        texto,
-        re.IGNORECASE | re.DOTALL
-    )
+    valor = ""
 
-    valor = match_valor.group(1) if match_valor else ""
+    for i, linha in enumerate(linhas):
+        if "Valor Líquido da NFS-e".lower() in linha.lower():
+            for j in range(i, i + 5):
+                if j < len(linhas):
+                    match = re.search(
+                        r"R\$\s?\d{1,3}(?:\.\d{3})*,\d{2}",
+                        linhas[j]
+                    )
+                    if match:
+                        valor = match.group(0)
+                        break
 
+    # fallback
     if not valor:
-        valores = re.findall(r"R\$\s?\d{1,3}(?:\.\d{3})*,\d{2}", texto)
+        valores = re.findall(
+            r"R\$\s?\d{1,3}(?:\.\d{3})*,\d{2}",
+            texto
+        )
         if valores:
             valor = valores[-1]
 
     # ----------------------------
-    # RETORNO FINAL
+    # RETORNO
     # ----------------------------
     return {
         "documento": cnpj,

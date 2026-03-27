@@ -58,11 +58,11 @@ DEPARTAMENTOS = [
 # ----------------------------
 # CONTROLE DOS CAMPOS
 # ----------------------------
-if "email" not in st.session_state:
-    st.session_state.email = ""
-
 if "nome" not in st.session_state:
     st.session_state.nome = ""
+
+if "email" not in st.session_state:
+    st.session_state.email = ""
 
 if "gestor" not in st.session_state:
     st.session_state.gestor = ""
@@ -74,10 +74,11 @@ if "ativo" not in st.session_state:
     st.session_state.ativo = True
 
 # ----------------------------
-# FORMULÁRIO
+# FORMULÁRIO (ORDEM AJUSTADA)
 # ----------------------------
-email = st.text_input("Email corporativo", key="email")
 nome = st.text_input("Nome completo", key="nome")
+
+email = st.text_input("E-mail corporativo", key="email")
 
 departamento = st.selectbox(
     "Departamento",
@@ -85,7 +86,7 @@ departamento = st.selectbox(
     key="departamento"
 )
 
-gestor = st.text_input("Gestor direto", key="gestor")
+gestor = st.text_input("Gestor imediato", key="gestor")
 
 ativo = st.checkbox("Ativo", key="ativo")
 
@@ -93,7 +94,7 @@ ativo = st.checkbox("Ativo", key="ativo")
 # BOTÃO CADASTRAR
 # ----------------------------
 if st.button("Cadastrar"):
-    if email and nome and departamento != "Selecione":
+    if nome and email and departamento != "Selecione":
 
         status = "Ativo" if ativo else "Inativo"
 
@@ -116,8 +117,8 @@ if st.button("Cadastrar"):
             st.success("Colaborador cadastrado com sucesso!")
 
             # limpar campos
-            st.session_state.email = ""
             st.session_state.nome = ""
+            st.session_state.email = ""
             st.session_state.gestor = ""
             st.session_state.departamento = "Selecione"
             st.session_state.ativo = True

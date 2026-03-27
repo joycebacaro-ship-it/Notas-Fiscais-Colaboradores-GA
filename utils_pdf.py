@@ -154,9 +154,9 @@ def extrair_dados_pdf(caminho):
     return {
         "documento": cnpj,
         "valor": valor,
-        "data_emissao": data_da_emissao,
-        "numero_nf": numero_da_nf,
-        "razao_social": nome_empresarial,
+        "data_emissao": data_emissao,
+        "numero_nf": numero_nf,
+        "razao_social": razao_social,
         "competencia": competencia,
-        "chave": chave_de_acesso
+        "chave": chave
     }

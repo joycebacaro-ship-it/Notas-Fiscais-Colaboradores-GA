@@ -2,107 +2,49 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
-import pdfplumber
-import re
+
+from utils_pdf import extrair_dados_pdf
+
 
 # ----------------------------
-# EXTRAÇÃO PDF
+# GARANTIR ESTRUTURA DO CSV
 # ----------------------------
-def extrair_dados_pdf(caminho):
+def garantir_colunas_notas(arquivo_notas):
 
-    texto = ""
+    colunas_esperadas = [
+        "ID",
+        "Data Solicitação",
+        "Colaborador",
+        "Departamento",
+        "Gestor",
+        "Email",
+        "Arquivo",
+        "Valor",
+        "Razão Social",
+        "CNPJ",
+        "Número NF",
+        "Data Emissão",
+        "Competência",
+        "Chave de Acesso",
+        "Data Upload"
+    ]
 
-    try:
-        with pdfplumber.open(caminho) as pdf:
-            for pagina in pdf.pages:
-                texto += pagina.extract_text() or ""
-    except:
-        return {}
+    if not os.path.exists(arquivo_notas):
+        df_init = pd.DataFrame(columns=colunas_esperadas)
+        df_init.to_csv(arquivo_notas, index=False)
+        return df_init
 
-    # ----------------------------
-    # CNPJ / CPF
-    # ----------------------------
-    doc = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
-    if not doc:
-        doc = re.search(r"\d{3}\.\d{3}\.\d{3}-\d{2}", texto)
+    df = pd.read_csv(arquivo_notas)
 
-    # ----------------------------
-    # VALOR
-    # ----------------------------
-    valores = re.findall(r"R\$\s?\d{1,3}(?:\.\d{3})*,\d{2}", texto)
+    for col in colunas_esperadas:
+        if col not in df.columns:
+            df[col] = ""
 
-    valor_final = ""
-    if valores:
-        valor_final = sorted(
-            valores,
-            key=lambda x: float(x.replace("R$", "").replace(".", "").replace(",", "."))
-        )[-1]
+    df = df[colunas_esperadas]
+    df.to_csv(arquivo_notas, index=False)
 
-    # ----------------------------
-    # DATA EMISSÃO
-    # ----------------------------
-    datas = re.findall(r"\d{2}/\d{2}/\d{4}", texto)
-    data_final = datas[0] if datas else ""
+    return df
 
-    # ----------------------------
-    # NUMERO NF (NFS-e)
-    # ----------------------------
-    numero_match = re.search(
-        r"(?:Número da NFS-e)[\s:\-]*([0-9]+)",
-        texto,
-        re.IGNORECASE
-    )
-
-    if not numero_match:
-        numero_match = re.search(r"(?:NF|Nota Fiscal)[^\d]*(\d+)", texto, re.IGNORECASE)
-
-    if not numero_match:
-        numero_match = re.search(r"\b\d{6,}\b", texto)
-
-    numero = numero_match.group(1) if numero_match and numero_match.groups() else (numero_match.group() if numero_match else "")
-
-    # ----------------------------
-    # RAZÃO SOCIAL
-    # ----------------------------
-    razao_match = re.search(
-        r"(?:Nome\s*/\s*Nome Empresarial|Nome Empresarial)[\s:\-]*([^\n]+)",
-        texto,
-        re.IGNORECASE
-    )
-
-    razao = razao_match.group(1).strip() if razao_match else ""
-
-    # ----------------------------
-    # COMPETÊNCIA
-    # ----------------------------
-    competencia_match = re.search(
-        r"(?:Competência da NFS-e)[\s:\-]*([0-9]{2}/[0-9]{4})",
-        texto,
-        re.IGNORECASE
-    )
-
-    competencia = competencia_match.group(1) if competencia_match else ""
-
-    # ----------------------------
-    # CHAVE DE ACESSO
-    # ----------------------------
-    chave_match = re.search(
-        r"(?:Chave de Acesso da NFS-e)[\s:\-]*([0-9]+)",
-        texto,
-        re.IGNORECASE
-    )
-
-    chave = chave_match.group(1) if chave_match else ""
-
-    return {
-        "documento": doc.group() if doc else "",
-        "valor": valor_final,
-        "data": data_final,
-        "numero": numero,
-        "razao": razao,
-        "competencia": competencia,
-        "chave": chave
-    }
 
 # ----------------------------
 # RENDER
@@ -122,9 +64,6 @@ def render():
 
     st.subheader("Notas Fiscais")
 
-    # ----------------------------
-    # ARQUIVOS
-    # ----------------------------
     ARQUIVO_COLAB = "colaboradores.csv"
     ARQUIVO_NOTAS = "notas.csv"
     PASTA_NOTAS = "notas"
@@ -132,40 +71,24 @@ def render():
     if not os.path.exists(PASTA_NOTAS):
         os.makedirs(PASTA_NOTAS)
 
-    if not os.path.exists(ARQUIVO_NOTAS):
-        df_init = pd.DataFrame(columns=[
-            "ID",
-            "Data Solicitação",
-            "Colaborador",
-            "Departamento",
-            "Gestor",
-            "Email",
-            "Arquivo",
-            "Valor",
-            "Razão Social",
-            "CNPJ",
-            "Número NF",
-            "Data Emissão",
-            "Competência",
-            "Chave de Acesso",
-            "Data Upload"
-        ])
-        df_init.to_csv(ARQUIVO_NOTAS, index=False)
-
     # ----------------------------
-    # VALIDAR COLABORADORES
+    # VALIDAÇÃO
     # ----------------------------
     if not os.path.exists(ARQUIVO_COLAB):
         st.error("Cadastre colaboradores antes de enviar notas")
+        st.markdown('</div>', unsafe_allow_html=True)
         return
 
     df_colab = pd.read_csv(ARQUIVO_COLAB)
 
     if df_colab.empty:
         st.warning("Nenhum colaborador cadastrado")
+        st.markdown('</div>', unsafe_allow_html=True)
         return
 
-    lista_colab = df_colab["Nome"].tolist()
+    df_notas = garantir_colunas_notas(ARQUIVO_NOTAS)
+
+    lista_colab = sorted(df_colab["Nome"].dropna().tolist())
 
     # ----------------------------
     # MODAL
@@ -195,9 +118,9 @@ def render():
 
             valor = dados.get("valor", "")
             cnpj = dados.get("documento", "")
-            numero_nf = dados.get("numero", "")
-            data_emissao = dados.get("data", "")
-            razao_social = dados.get("razao", "")
+            numero_nf = dados.get("numero_nf", "")
+            data_emissao = dados.get("data_emissao", "")
+            razao_social = dados.get("razao_social", "")
             competencia = dados.get("competencia", "")
             chave = dados.get("chave", "")
 
@@ -211,8 +134,15 @@ def render():
             competencia = st.text_input("Competência", value=competencia)
             chave = st.text_input("Chave de Acesso", value=chave)
 
+            # limpa arquivo temporário
+            if os.path.exists(caminho_temp):
+                try:
+                    os.remove(caminho_temp)
+                except:
+                    pass
+
         # ----------------------------
-        # CONFIRMAR
+        # SALVAR
         # ----------------------------
         if st.button("Confirmar envio"):
 
@@ -226,9 +156,13 @@ def render():
             departamento = dados_colab["Departamento"]
             gestor = dados_colab["Gestor"]
 
-            df_notas = pd.read_csv(ARQUIVO_NOTAS)
+            df_notas_atual = garantir_colunas_notas(ARQUIVO_NOTAS)
 
-            novo_id = 1 if df_notas.empty else int(df_notas["ID"].max()) + 1
+            novo_id = (
+                1
+                if df_notas_atual.empty
+                else int(pd.to_numeric(df_notas_atual["ID"], errors="coerce").fillna(0).max()) + 1
+            )
 
             nome_arquivo = f"NF_{novo_id}_{arquivo.name}"
             caminho_final = os.path.join(PASTA_NOTAS, nome_arquivo)
@@ -254,8 +188,12 @@ def render():
                 "Data Upload": datetime.now().strftime("%d/%m/%Y %H:%M")
             }
 
-            df_notas = pd.concat([df_notas, pd.DataFrame([nova_linha])], ignore_index=True)
-            df_notas.to_csv(ARQUIVO_NOTAS, index=False)
+            df_notas_atual = pd.concat(
+                [df_notas_atual, pd.DataFrame([nova_linha])],
+                ignore_index=True
+            )
+
+            df_notas_atual.to_csv(ARQUIVO_NOTAS, index=False)
 
             st.success("Nota processada e salva com sucesso!")
             st.rerun()
@@ -271,7 +209,7 @@ def render():
     # ----------------------------
     st.subheader("Notas enviadas")
 
-    df_notas = pd.read_csv(ARQUIVO_NOTAS)
+    df_notas = garantir_colunas_notas(ARQUIVO_NOTAS)
 
     if not df_notas.empty:
         df_notas = df_notas.sort_values(by="ID", ascending=False)

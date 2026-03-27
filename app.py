@@ -25,10 +25,9 @@ if not os.path.exists(ARQUIVO):
 df = pd.read_csv(ARQUIVO)
 
 # ----------------------------
-# LISTA DE DEPARTAMENTOS
+# LISTAS BASE
 # ----------------------------
-DEPARTAMENTOS = [
-    "Selecione",
+DEPARTAMENTOS_BASE = [
     "Assessoria Diretoria Executiva",
     "Comercial",
     "Compras",
@@ -55,11 +54,7 @@ DEPARTAMENTOS = [
     "XR"
 ]
 
-# ----------------------------
-# LISTA DE GESTORES
-# ----------------------------
-GESTORES = [
-    "Selecione",
+GESTORES_BASE = [
     "Alnilam Campos",
     "Diego Depardieu",
     "Vitor Damasceno",
@@ -77,6 +72,12 @@ GESTORES = [
     "Camila Távora",
     "Deyse Lima"
 ]
+
+# ----------------------------
+# ORDENAÇÃO AUTOMÁTICA
+# ----------------------------
+DEPARTAMENTOS = ["Selecione"] + sorted(DEPARTAMENTOS_BASE)
+GESTORES = ["Selecione"] + sorted(GESTORES_BASE)
 
 # ----------------------------
 # CONTROLE DOS CAMPOS

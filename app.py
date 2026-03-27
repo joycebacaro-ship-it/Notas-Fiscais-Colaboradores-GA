@@ -6,24 +6,12 @@ import os
 st.set_page_config(page_title="Sistema de Notas", layout="wide")
 
 # ----------------------------
-# ESTILO
+# MENU LATERAL
 # ----------------------------
-st.markdown(
-    """
-    <style>
-    .bloco {
-        max-width: 900px;
-        margin-left: 40px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
+menu = st.sidebar.selectbox(
+    "Menu",
+    ["📄 Enviar Nota Fiscal", "👤 Colaborador"]
 )
-
-st.markdown('<div class="bloco">', unsafe_allow_html=True)
-
-st.title("Sistema de Notas")
-st.subheader("Colaboradores")
 
 # ----------------------------
 # ARQUIVO
@@ -95,76 +83,86 @@ GESTORES_BASE = [
 DEPARTAMENTOS = ["Selecione"] + sorted(DEPARTAMENTOS_BASE)
 GESTORES = ["Selecione"] + sorted(GESTORES_BASE)
 
-# ----------------------------
-# MODAL (POPUP)
-# ----------------------------
-@st.dialog("Novo Colaborador")
-def modal_cadastro():
+# ============================
+# TELA: COLABORADOR
+# ============================
+if menu == "👤 Colaborador":
 
-    nome = st.text_input("Nome completo")
-    email = st.text_input("E-mail corporativo")
+    st.title("Colaboradores")
 
-    departamento = st.selectbox("Departamento", DEPARTAMENTOS)
-    gestor = st.selectbox("Gestor imediato", GESTORES)
+    @st.dialog("Novo Colaborador")
+    def modal_cadastro():
 
-    ativo = st.checkbox("Ativo", value=True)
+        nome = st.text_input("Nome completo")
+        email = st.text_input("E-mail corporativo")
 
-    if st.button("Salvar cadastro"):
-        if nome and email and departamento != "Selecione" and gestor != "Selecione":
+        departamento = st.selectbox("Departamento", DEPARTAMENTOS)
+        gestor = st.selectbox("Gestor imediato", GESTORES)
 
-            status = "Ativo" if ativo else "Inativo"
+        ativo = st.checkbox("Ativo", value=True)
 
-            if email in df["Email"].values:
-                st.warning("Email já cadastrado.")
-            else:
-                if df.empty:
-                    novo_id = 1
+        if st.button("Salvar cadastro"):
+            if nome and email and departamento != "Selecione" and gestor != "Selecione":
+
+                status = "Ativo" if ativo else "Inativo"
+
+                if email in df["Email"].values:
+                    st.warning("Email já cadastrado.")
                 else:
-                    novo_id = int(df["ID"].max()) + 1
+                    if df.empty:
+                        novo_id = 1
+                    else:
+                        novo_id = int(df["ID"].max()) + 1
 
-                nova_linha = {
-                    "ID": novo_id,
-                    "Email": email,
-                    "Nome": nome,
-                    "Departamento": departamento,
-                    "Gestor": gestor,
-                    "Status": status,
-                    "Data Cadastro": datetime.now().strftime("%d/%m/%Y %H:%M")
-                }
+                    nova_linha = {
+                        "ID": novo_id,
+                        "Email": email,
+                        "Nome": nome,
+                        "Departamento": departamento,
+                        "Gestor": gestor,
+                        "Status": status,
+                        "Data Cadastro": datetime.now().strftime("%d/%m/%Y %H:%M")
+                    }
 
-                df_novo = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
-                df_novo.to_csv(ARQUIVO, index=False)
+                    df_novo = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
+                    df_novo.to_csv(ARQUIVO, index=False)
 
-                st.success("Cadastro realizado com sucesso!")
-                st.rerun()
+                    st.success("Cadastro realizado com sucesso!")
+                    st.rerun()
 
-        else:
-            st.error("Preencha todos os campos obrigatórios")
+            else:
+                st.error("Preencha todos os campos obrigatórios")
 
-# ----------------------------
-# BOTÃO PRINCIPAL
-# ----------------------------
-if st.button("➕ Criar cadastro"):
-    modal_cadastro()
+    # botão abrir modal
+    if st.button("➕ Criar cadastro"):
+        modal_cadastro()
 
-# ----------------------------
-# TABELA
-# ----------------------------
-st.subheader("Colaboradores cadastrados")
+    # tabela
+    st.subheader("Colaboradores cadastrados")
 
-df = pd.read_csv(ARQUIVO)
+    df = pd.read_csv(ARQUIVO)
 
-if not df.empty:
+    if not df.empty:
+        df_exibir = df.sort_values(by="ID", ascending=False)
+        colunas = ["ID"] + [col for col in df_exibir.columns if col != "ID"]
+        df_exibir = df_exibir[colunas]
 
-    df_exibir = df.copy()
-    df_exibir = df_exibir.sort_values(by="ID", ascending=False)
+        st.dataframe(df_exibir, use_container_width=True, hide_index=True)
+    else:
+        st.write("Nenhum colaborador cadastrado ainda.")
 
-    colunas = ["ID"] + [col for col in df_exibir.columns if col != "ID"]
-    df_exibir = df_exibir[colunas]
+# ============================
+# TELA: NOTA FISCAL
+# ============================
+elif menu == "📄 Enviar Nota Fiscal":
 
-    st.dataframe(df_exibir, use_container_width=True, hide_index=True)
+    st.title("Enviar Nota Fiscal")
 
-else:
-    st.write("Nenhum colaborador cadastrado ainda.")
+    st.write("Aqui será o envio da nota fiscal.")
 
-st.markdown('</div>', unsafe_allow_html=True)
+    arquivo = st.file_uploader("Anexar PDF da Nota Fiscal", type=["pdf"])
+
+    if arquivo:
+        st.success("Arquivo carregado com sucesso!")
+
+        st.write("📄 Nome do arquivo:", arquivo.name)

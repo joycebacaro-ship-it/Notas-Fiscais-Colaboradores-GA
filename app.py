@@ -3,7 +3,6 @@ import streamlit as st
 # ----------------------------
 # CONFIG
 # ----------------------------
-st.set_page_config(page_title="Sistema de Notas", layout="wide")
 
 # ----------------------------
 # ESTILO SIDEBAR
@@ -28,7 +27,12 @@ if "pagina" not in st.session_state:
 # ----------------------------
 # SIDEBAR
 # ----------------------------
-st.sidebar.markdown("## Grupo Acelerador")
+st.sidebar.markdown("""
+### Sistema de Notas
+<span style='font-size:12px; color:#9ca3af;'>Grupo Acelerador</span>
+""", unsafe_allow_html=True)
+
+st.sidebar.markdown("---")
 st.sidebar.markdown("---")
 
 def botao_menu(nome, label):

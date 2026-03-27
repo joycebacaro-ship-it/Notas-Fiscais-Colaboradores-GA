@@ -28,7 +28,7 @@ if "pagina" not in st.session_state:
 # SIDEBAR
 # ----------------------------
 st.sidebar.markdown("""
-### Acelera Notas
+### ACELERA NOTAS
 <span style='font-size:12px; color:#9ca3af;'>Grupo Acelerador</span>
 """, unsafe_allow_html=True)
 

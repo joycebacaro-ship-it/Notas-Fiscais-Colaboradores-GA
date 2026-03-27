@@ -16,8 +16,6 @@ def render():
 
     st.markdown('<div class="bloco">', unsafe_allow_html=True)
 
-    st.subheader("Colaboradores")
-
     ARQUIVO = "colaboradores.csv"
 
     # criar arquivo se não existir

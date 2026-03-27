@@ -16,7 +16,6 @@ def render():
 
     st.markdown('<div class="bloco">', unsafe_allow_html=True)
 
-    st.title("Sistema de Notas")
     st.subheader("Colaboradores")
 
     ARQUIVO = "colaboradores.csv"

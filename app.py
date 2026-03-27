@@ -30,7 +30,6 @@ st.subheader("Cadastro de Colaboradores")
 # ----------------------------
 ARQUIVO = "colaboradores.csv"
 
-# cria arquivo se não existir
 if not os.path.exists(ARQUIVO):
     df_inicial = pd.DataFrame(columns=[
         "ID", "Email", "Nome", "Departamento", "Gestor", "Status", "Data Cadastro"
@@ -42,7 +41,7 @@ if not os.path.exists(ARQUIVO):
 # ----------------------------
 df = pd.read_csv(ARQUIVO)
 
-# 🔥 CORREÇÃO: garante coluna ID
+# garantir ID
 if "ID" not in df.columns:
     df["ID"] = range(1, len(df) + 1)
     df.to_csv(ARQUIVO, index=False)
@@ -100,33 +99,15 @@ DEPARTAMENTOS = ["Selecione"] + sorted(DEPARTAMENTOS_BASE)
 GESTORES = ["Selecione"] + sorted(GESTORES_BASE)
 
 # ----------------------------
-# CAMPOS
-# ----------------------------
-if "nome" not in st.session_state:
-    st.session_state.nome = ""
-
-if "email" not in st.session_state:
-    st.session_state.email = ""
-
-if "gestor" not in st.session_state:
-    st.session_state.gestor = "Selecione"
-
-if "departamento" not in st.session_state:
-    st.session_state.departamento = "Selecione"
-
-if "ativo" not in st.session_state:
-    st.session_state.ativo = True
-
-# ----------------------------
 # FORMULÁRIO
 # ----------------------------
-nome = st.text_input("Nome completo", key="nome")
-email = st.text_input("E-mail corporativo", key="email")
+nome = st.text_input("Nome completo")
+email = st.text_input("E-mail corporativo")
 
-departamento = st.selectbox("Departamento", DEPARTAMENTOS, key="departamento")
-gestor = st.selectbox("Gestor imediato", GESTORES, key="gestor")
+departamento = st.selectbox("Departamento", DEPARTAMENTOS)
+gestor = st.selectbox("Gestor imediato", GESTORES)
 
-ativo = st.checkbox("Ativo", key="ativo")
+ativo = st.checkbox("Ativo", value=True)
 
 # ----------------------------
 # BOTÃO
@@ -139,7 +120,6 @@ if st.button("Cadastrar"):
         if email in df["Email"].values:
             st.warning("Email já cadastrado.")
         else:
-            # 🔥 ID seguro
             if df.empty:
                 novo_id = 1
             else:
@@ -160,12 +140,8 @@ if st.button("Cadastrar"):
 
             st.success(f"Colaborador cadastrado com ID {novo_id}")
 
-            # limpar campos
-            st.session_state.nome = ""
-            st.session_state.email = ""
-            st.session_state.gestor = "Selecione"
-            st.session_state.departamento = "Selecione"
-            st.session_state.ativo = True
+            # 🔥 RESET CORRETO
+            st.rerun()
 
     else:
         st.error("Preencha todos os campos obrigatórios")

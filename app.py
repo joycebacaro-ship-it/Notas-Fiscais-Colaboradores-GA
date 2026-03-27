@@ -156,7 +156,16 @@ df = pd.read_csv(ARQUIVO)
 st.subheader("Colaboradores cadastrados")
 
 if not df.empty:
-    st.dataframe(df, use_container_width=True)
+    df_exibir = df.copy()
+
+# ordenar por ID (mais recente em cima)
+df_exibir = df_exibir.sort_values(by="ID", ascending=False)
+
+# colocar ID como primeira coluna (garantia)
+colunas = ["ID"] + [col for col in df_exibir.columns if col != "ID"]
+df_exibir = df_exibir[colunas]
+
+st.dataframe(df_exibir, use_container_width=True, hide_index=True)
 else:
     st.write("Nenhum colaborador cadastrado ainda.")
 

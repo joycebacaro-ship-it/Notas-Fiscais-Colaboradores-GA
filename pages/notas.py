@@ -25,18 +25,18 @@ def render():
     ARQUIVO_NOTAS = "notas.csv"
     PASTA_NOTAS = "notas"
 
-    # cria pasta se não existir
     if not os.path.exists(PASTA_NOTAS):
         os.makedirs(PASTA_NOTAS)
 
-    # cria base de notas se não existir
     if not os.path.exists(ARQUIVO_NOTAS):
         df_init = pd.DataFrame(columns=[
             "ID", "Colaborador", "Email", "Arquivo", "Data Upload"
         ])
         df_init.to_csv(ARQUIVO_NOTAS, index=False)
 
-    # carregar colaboradores
+    # ----------------------------
+    # VALIDAR COLABORADORES
+    # ----------------------------
     if not os.path.exists(ARQUIVO_COLAB):
         st.error("Cadastre colaboradores antes de enviar notas")
         return
@@ -47,60 +47,58 @@ def render():
         st.warning("Nenhum colaborador cadastrado")
         return
 
-    # ----------------------------
-    # SELEÇÃO COLABORADOR
-    # ----------------------------
     lista_colab = df_colab["Nome"].tolist()
 
-    colaborador = st.selectbox("Colaborador", ["Selecione"] + lista_colab)
+    # ----------------------------
+    # MODAL
+    # ----------------------------
+    @st.dialog("Novo envio de Nota Fiscal")
+    def modal_nota():
+
+        colaborador = st.selectbox("Colaborador", ["Selecione"] + lista_colab)
+        arquivo = st.file_uploader("Nota Fiscal (PDF)", type=["pdf"])
+
+        if st.button("Enviar Nota"):
+
+            if colaborador == "Selecione" or arquivo is None:
+                st.error("Preencha todos os campos")
+                return
+
+            dados = df_colab[df_colab["Nome"] == colaborador].iloc[0]
+            email = dados["Email"]
+
+            df_notas = pd.read_csv(ARQUIVO_NOTAS)
+
+            if df_notas.empty:
+                novo_id = 1
+            else:
+                novo_id = int(df_notas["ID"].max()) + 1
+
+            nome_arquivo = f"NF_{novo_id}_{arquivo.name}"
+            caminho = os.path.join(PASTA_NOTAS, nome_arquivo)
+
+            with open(caminho, "wb") as f:
+                f.write(arquivo.getbuffer())
+
+            nova_linha = {
+                "ID": novo_id,
+                "Colaborador": colaborador,
+                "Email": email,
+                "Arquivo": nome_arquivo,
+                "Data Upload": datetime.now().strftime("%d/%m/%Y %H:%M")
+            }
+
+            df_notas = pd.concat([df_notas, pd.DataFrame([nova_linha])], ignore_index=True)
+            df_notas.to_csv(ARQUIVO_NOTAS, index=False)
+
+            st.success("Nota enviada com sucesso!")
+            st.rerun()
 
     # ----------------------------
-    # UPLOAD
+    # BOTÃO ABRIR MODAL
     # ----------------------------
-    arquivo = st.file_uploader("Nota Fiscal (PDF)", type=["pdf"])
-
-    # ----------------------------
-    # BOTÃO
-    # ----------------------------
-    if st.button("Enviar Nota"):
-
-        if colaborador == "Selecione" or arquivo is None:
-            st.error("Preencha todos os campos")
-            return
-
-        # buscar dados do colaborador
-        dados = df_colab[df_colab["Nome"] == colaborador].iloc[0]
-        email = dados["Email"]
-
-        # gerar ID
-        df_notas = pd.read_csv(ARQUIVO_NOTAS)
-
-        if df_notas.empty:
-            novo_id = 1
-        else:
-            novo_id = int(df_notas["ID"].max()) + 1
-
-        # salvar arquivo
-        nome_arquivo = f"NF_{novo_id}_{arquivo.name}"
-        caminho = os.path.join(PASTA_NOTAS, nome_arquivo)
-
-        with open(caminho, "wb") as f:
-            f.write(arquivo.getbuffer())
-
-        # salvar registro
-        nova_linha = {
-            "ID": novo_id,
-            "Colaborador": colaborador,
-            "Email": email,
-            "Arquivo": nome_arquivo,
-            "Data Upload": datetime.now().strftime("%d/%m/%Y %H:%M")
-        }
-
-        df_notas = pd.concat([df_notas, pd.DataFrame([nova_linha])], ignore_index=True)
-        df_notas.to_csv(ARQUIVO_NOTAS, index=False)
-
-        st.success("Nota enviada com sucesso!")
-        st.rerun()
+    if st.button("➕ Enviar nova nota"):
+        modal_nota()
 
     # ----------------------------
     # TABELA

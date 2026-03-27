@@ -94,6 +94,7 @@ GESTORES_BASE = [
     "Rafael Garcia",
     "Camila Távora",
     "Deyse Lima"
+    "Teste"
 ]
 
 DEPARTAMENTOS = ["Selecione"] + sorted(DEPARTAMENTOS_BASE)

@@ -30,6 +30,7 @@ st.subheader("Cadastro de Colaboradores")
 # ----------------------------
 ARQUIVO = "colaboradores.csv"
 
+# cria arquivo se não existir
 if not os.path.exists(ARQUIVO):
     df_inicial = pd.DataFrame(columns=[
         "ID", "Email", "Nome", "Departamento", "Gestor", "Status", "Data Cadastro"
@@ -40,6 +41,11 @@ if not os.path.exists(ARQUIVO):
 # CARREGAR DADOS
 # ----------------------------
 df = pd.read_csv(ARQUIVO)
+
+# 🔥 CORREÇÃO: garante coluna ID
+if "ID" not in df.columns:
+    df["ID"] = range(1, len(df) + 1)
+    df.to_csv(ARQUIVO, index=False)
 
 # ----------------------------
 # LISTAS
@@ -133,7 +139,7 @@ if st.button("Cadastrar"):
         if email in df["Email"].values:
             st.warning("Email já cadastrado.")
         else:
-            # 🔥 GERAR ID AUTOMÁTICO
+            # 🔥 ID seguro
             if df.empty:
                 novo_id = 1
             else:
@@ -167,9 +173,9 @@ if st.button("Cadastrar"):
 # ----------------------------
 # TABELA
 # ----------------------------
-st.subheader("Colaboradores cadastrados")
-
 df = pd.read_csv(ARQUIVO)
+
+st.subheader("Colaboradores cadastrados")
 
 if not df.empty:
     st.dataframe(df, use_container_width=True)

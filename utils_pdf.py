@@ -66,7 +66,16 @@ def extrair_dados_pdf(caminho):
     # ----------------------------
     # DATA EMISSÃO (corrigido)
     # ----------------------------
-    data_emissao = buscar_valor_abaixo(texto, "Data da emissão da NFS-e")
+   data_emissao = ""
+
+match_data = re.search(
+    r"Data da emissão da NFS-e\s*\n?\s*([0-9]{2}/[0-9]{2}/[0-9]{4})",
+    texto,
+    re.IGNORECASE
+)
+
+if match_data:
+    data_emissao = match_data.group(1)
     data_match = re.search(r"\d{2}/\d{2}/\d{4}", data_emissao)
     data_emissao = data_match.group(0) if data_match else ""
 

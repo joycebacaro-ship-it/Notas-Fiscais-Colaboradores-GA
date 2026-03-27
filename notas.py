@@ -19,12 +19,16 @@ def extrair_dados_pdf(caminho):
     except:
         return {}
 
+    # ----------------------------
     # CNPJ / CPF
+    # ----------------------------
     doc = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
     if not doc:
         doc = re.search(r"\d{3}\.\d{3}\.\d{3}-\d{2}", texto)
 
-    # VALOR (pega o maior)
+    # ----------------------------
+    # VALOR
+    # ----------------------------
     valores = re.findall(r"R\$\s?\d{1,3}(?:\.\d{3})*,\d{2}", texto)
 
     valor_final = ""
@@ -34,25 +38,70 @@ def extrair_dados_pdf(caminho):
             key=lambda x: float(x.replace("R$", "").replace(".", "").replace(",", "."))
         )[-1]
 
-    # DATA
+    # ----------------------------
+    # DATA EMISSÃO
+    # ----------------------------
     datas = re.findall(r"\d{2}/\d{2}/\d{4}", texto)
     data_final = datas[0] if datas else ""
 
-    # NUMERO NF
-    numero = re.search(r"(?:NF|Nota Fiscal)[^\d]*(\d+)", texto, re.IGNORECASE)
-    if not numero:
-        numero = re.search(r"\b\d{6,}\b", texto)
+    # ----------------------------
+    # NUMERO NF (NFS-e)
+    # ----------------------------
+    numero_match = re.search(
+        r"(?:Número da NFS-e)[\s:\-]*([0-9]+)",
+        texto,
+        re.IGNORECASE
+    )
 
+    if not numero_match:
+        numero_match = re.search(r"(?:NF|Nota Fiscal)[^\d]*(\d+)", texto, re.IGNORECASE)
+
+    if not numero_match:
+        numero_match = re.search(r"\b\d{6,}\b", texto)
+
+    numero = numero_match.group(1) if numero_match and numero_match.groups() else (numero_match.group() if numero_match else "")
+
+    # ----------------------------
     # RAZÃO SOCIAL
-    linhas = texto.split("\n")
-    razao = linhas[0] if linhas else ""
+    # ----------------------------
+    razao_match = re.search(
+        r"(?:Nome\s*/\s*Nome Empresarial|Nome Empresarial)[\s:\-]*([^\n]+)",
+        texto,
+        re.IGNORECASE
+    )
+
+    razao = razao_match.group(1).strip() if razao_match else ""
+
+    # ----------------------------
+    # COMPETÊNCIA
+    # ----------------------------
+    competencia_match = re.search(
+        r"(?:Competência da NFS-e)[\s:\-]*([0-9]{2}/[0-9]{4})",
+        texto,
+        re.IGNORECASE
+    )
+
+    competencia = competencia_match.group(1) if competencia_match else ""
+
+    # ----------------------------
+    # CHAVE DE ACESSO
+    # ----------------------------
+    chave_match = re.search(
+        r"(?:Chave de Acesso da NFS-e)[\s:\-]*([0-9]+)",
+        texto,
+        re.IGNORECASE
+    )
+
+    chave = chave_match.group(1) if chave_match else ""
 
     return {
         "documento": doc.group() if doc else "",
         "valor": valor_final,
         "data": data_final,
-        "numero": numero.group(1) if numero and numero.groups() else (numero.group() if numero else ""),
-        "razao": razao
+        "numero": numero,
+        "razao": razao,
+        "competencia": competencia,
+        "chave": chave
     }
 
 # ----------------------------
@@ -97,6 +146,8 @@ def render():
             "CNPJ",
             "Número NF",
             "Data Emissão",
+            "Competência",
+            "Chave de Acesso",
             "Data Upload"
         ])
         df_init.to_csv(ARQUIVO_NOTAS, index=False)
@@ -130,6 +181,8 @@ def render():
         numero_nf = ""
         data_emissao = ""
         razao_social = ""
+        competencia = ""
+        chave = ""
 
         if arquivo is not None:
 
@@ -144,7 +197,9 @@ def render():
             cnpj = dados.get("documento", "")
             numero_nf = dados.get("numero", "")
             data_emissao = dados.get("data", "")
-            razao_social = dados.get("nome empresarial", "")
+            razao_social = dados.get("razao", "")
+            competencia = dados.get("competencia", "")
+            chave = dados.get("chave", "")
 
             st.markdown("### 📄 Dados identificados automaticamente")
 
@@ -153,6 +208,8 @@ def render():
             cnpj = st.text_input("CNPJ / CPF", value=cnpj)
             numero_nf = st.text_input("Número da NF", value=numero_nf)
             data_emissao = st.text_input("Data da Emissão", value=data_emissao)
+            competencia = st.text_input("Competência", value=competencia)
+            chave = st.text_input("Chave de Acesso", value=chave)
 
         # ----------------------------
         # CONFIRMAR
@@ -192,6 +249,8 @@ def render():
                 "CNPJ": cnpj,
                 "Número NF": numero_nf,
                 "Data Emissão": data_emissao,
+                "Competência": competencia,
+                "Chave de Acesso": chave,
                 "Data Upload": datetime.now().strftime("%d/%m/%Y %H:%M")
             }
 

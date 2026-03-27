@@ -73,7 +73,7 @@ DEPARTAMENTOS_BASE = [
     "Relacionamento",
     "Sucesso do Cliente",
     "Tecnologia da Informação",
-    "XR"
+    "XR",
     "Teste"
 ]
 
@@ -93,7 +93,7 @@ GESTORES_BASE = [
     "Virginia Pierini",
     "Rafael Garcia",
     "Camila Távora",
-    "Deyse Lima"
+    "Deyse Lima",
     "Teste"
 ]
 

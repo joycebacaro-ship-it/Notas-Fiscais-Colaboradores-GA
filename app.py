@@ -28,6 +28,7 @@ df = pd.read_csv(ARQUIVO)
 # LISTA DE DEPARTAMENTOS
 # ----------------------------
 DEPARTAMENTOS = [
+    "Departamento",
     "Assessoria Diretoria Executiva",
     "Comercial",
     "Compras",
@@ -67,7 +68,7 @@ if "gestor" not in st.session_state:
     st.session_state.gestor = ""
 
 if "departamento" not in st.session_state:
-    st.session_state.departamento = DEPARTAMENTOS[0]
+    st.session_state.departamento = "Departamento"
 
 if "status" not in st.session_state:
     st.session_state.status = "Ativo"
@@ -96,7 +97,7 @@ status = st.selectbox(
 # BOTÃO CADASTRAR
 # ----------------------------
 if st.button("Cadastrar"):
-    if email and nome:
+    if email and nome and departamento != "Departamento":
 
         # valida duplicidade
         if email in df["Email"].values:
@@ -120,11 +121,11 @@ if st.button("Cadastrar"):
             st.session_state.email = ""
             st.session_state.nome = ""
             st.session_state.gestor = ""
-            st.session_state.departamento = DEPARTAMENTOS[0]
+            st.session_state.departamento = "Departamento"
             st.session_state.status = "Ativo"
 
     else:
-        st.error("Preencha os campos obrigatórios")
+        st.error("Preencha todos os campos obrigatórios")
 
 # ----------------------------
 # ATUALIZAR DADOS NA TELA

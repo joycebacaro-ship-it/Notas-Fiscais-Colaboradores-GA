@@ -80,7 +80,3 @@ if st.session_state.pagina == "Colaborador":
     else:
         st.error("Página de colaboradores não encontrada")
 
-from pages import notas
-
-elif st.session_state.pagina == "Enviar Nota Fiscal":
-    notas.render()

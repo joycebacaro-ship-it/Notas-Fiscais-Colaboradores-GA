@@ -6,45 +6,55 @@ import os
 st.set_page_config(page_title="Sistema de Notas", layout="wide")
 
 # ----------------------------
-# SIDEBAR ESTILO ESCURO
+# SIDEBAR ESCURA
 # ----------------------------
 st.markdown("""
 <style>
 [data-testid="stSidebar"] {
-    background-color: #1f2937; /* cinza escuro */
+    background-color: #1f2937;
 }
 
 [data-testid="stSidebar"] * {
     color: white;
 }
 
-section[data-testid="stSidebar"] .stRadio > div {
-    gap: 8px;
-}
-
-section[data-testid="stSidebar"] label {
-    font-size: 16px;
-    font-weight: 500;
-}
-
-section[data-testid="stSidebar"] div[role="radiogroup"] label {
+.menu-btn {
     padding: 10px;
     border-radius: 8px;
+    margin-bottom: 5px;
+    text-align: left;
+    cursor: pointer;
 }
 
-section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+.menu-btn:hover {
+    background-color: #374151;
+}
+
+.menu-active {
     background-color: #374151;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# LOGO (pode trocar depois)
-st.sidebar.markdown("## Grupo Acelerador")
+# ----------------------------
+# CONTROLE DE PÁGINA
+# ----------------------------
+if "pagina" not in st.session_state:
+    st.session_state.pagina = "Colaborador"
 
-pagina = st.sidebar.radio(
-    "",
-    ["📄 Enviar Nota Fiscal", "👤 Colaborador"]
-)
+st.sidebar.markdown("## Grupo Acelerador")
+st.sidebar.markdown("---")
+
+# ----------------------------
+# MENU BOTÕES
+# ----------------------------
+if st.sidebar.button("📄 Enviar Nota Fiscal", use_container_width=True):
+    st.session_state.pagina = "Enviar Nota Fiscal"
+
+if st.sidebar.button("👤 Colaborador", use_container_width=True):
+    st.session_state.pagina = "Colaborador"
+
+pagina = st.session_state.pagina
 
 # ----------------------------
 # ESTILO CONTEÚDO
@@ -64,7 +74,7 @@ st.markdown(
 # ============================
 # PAGINA: COLABORADOR
 # ============================
-if pagina == "👤 Colaborador":
+if pagina == "Colaborador":
 
     st.markdown('<div class="bloco">', unsafe_allow_html=True)
 
@@ -81,10 +91,14 @@ if pagina == "👤 Colaborador":
 
     df = pd.read_csv(ARQUIVO)
 
+    # garantir ID
     if "ID" not in df.columns:
         df["ID"] = range(1, len(df) + 1)
         df.to_csv(ARQUIVO, index=False)
 
+    # ----------------------------
+    # LISTAS
+    # ----------------------------
     DEPARTAMENTOS_BASE = [
         "Assessoria Diretoria Executiva",
         "Comercial",
@@ -134,6 +148,9 @@ if pagina == "👤 Colaborador":
     DEPARTAMENTOS = ["Selecione"] + sorted(DEPARTAMENTOS_BASE)
     GESTORES = ["Selecione"] + sorted(GESTORES_BASE)
 
+    # ----------------------------
+    # MODAL
+    # ----------------------------
     @st.dialog("Novo Colaborador")
     def modal_cadastro():
 
@@ -177,9 +194,13 @@ if pagina == "👤 Colaborador":
             else:
                 st.error("Preencha todos os campos obrigatórios")
 
+    # botão abrir modal
     if st.button("➕ Criar cadastro"):
         modal_cadastro()
 
+    # ----------------------------
+    # TABELA
+    # ----------------------------
     st.subheader("Colaboradores cadastrados")
 
     df = pd.read_csv(ARQUIVO)
@@ -200,7 +221,7 @@ if pagina == "👤 Colaborador":
 # ============================
 # PAGINA: NOTA FISCAL
 # ============================
-if pagina == "📄 Enviar Nota Fiscal":
+if pagina == "Enviar Nota Fiscal":
 
     st.title("Enviar Nota Fiscal")
     st.info("🚧 Em construção")

@@ -74,6 +74,7 @@ DEPARTAMENTOS_BASE = [
     "Sucesso do Cliente",
     "Tecnologia da Informação",
     "XR"
+    "Teste"
 ]
 
 GESTORES_BASE = [

@@ -46,8 +46,6 @@ def render():
 
     st.markdown('<div class="bloco">', unsafe_allow_html=True)
 
-    st.subheader("Notas Fiscais")
-
     # ----------------------------
     # ARQUIVOS
     # ----------------------------
